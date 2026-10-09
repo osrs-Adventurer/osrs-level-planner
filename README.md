@@ -6,6 +6,8 @@ It was built for restricted accounts (pures, hardcore ironmen, untrimmed Slayer 
 
 There is nothing to install and no server. It is three small files: a page, a stylesheet and a script.
 
+Current test version of the app: https://osrs-adventurer.github.io/osrs-level-planner/
+
 ## What it does
 
 - **Loads your stats** by pasting your hiscores page, or by typing levels in by hand.
