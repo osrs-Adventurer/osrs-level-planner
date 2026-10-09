@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="description" content="Plan which skills to train to reach an Old School RuneScape total level world.">
+  <title>OSRS total level planner</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+<!--
+  This file is the page structure. Two other files finish the job:
+    style.css   the look of the page (colours, spacing, fonts)
+    script.js   the behaviour (loading stats, doing the sums, drawing results)
+  Boxes below that have an id but no content, such as <div id="rules">,
+  are filled in by script.js.
+-->
+<main>
+
+  <!-- The title and the four totals. The script fills in the numbers. -->
+  <header>
+    <div>
+      <h1>OSRS total level planner</h1>
+      <p id="rule-summary"></p>
+    </div>
+    <div class="stats">
+      <div>
+        <div class="stat-value" id="current-total"></div>
+        <div class="stat-label">Current total</div>
+      </div>
+      <div>
+        <div class="stat-value target" id="target-total"></div>
+        <div class="stat-label">Target total</div>
+      </div>
+      <div>
+        <div class="stat-value" id="current-combat"></div>
+        <div class="stat-label">Combat now</div>
+      </div>
+      <div>
+        <div class="stat-value target" id="target-combat"></div>
+        <div class="stat-label">Combat at target</div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Step 1: bring in your current stats. -->
+  <section class="panel" aria-labelledby="import-heading">
+    <h2 id="import-heading">Load your stats</h2>
+    <p class="muted note">This page can't contact the hiscores directly. Open your hiscores link, copy everything on that page, and paste it below. Or type levels straight into the Current column.</p>
+    <div class="controls">
+      <input type="text" id="username" placeholder="Username" aria-label="Username">
+      <select id="hiscore-mode" aria-label="Hiscore type">
+        <option value="hiscore_oldschool">Main</option>
+        <option value="hiscore_oldschool_ironman">Ironman</option>
+        <option value="hiscore_oldschool_hardcore_ironman">Hardcore ironman</option>
+        <option value="hiscore_oldschool_ultimate">Ultimate ironman</option>
+      </select>
+      <a id="hiscore-link" href="#" target="_blank" rel="noopener">Open hiscores data</a>
+    </div>
+    <textarea id="hiscore-paste" placeholder="Paste the hiscores page here" aria-label="Pasted hiscores data"></textarea>
+    <div class="controls">
+      <button type="button" class="primary" id="import-stats">Import stats</button>
+      <span class="note" id="import-message" role="status"></span>
+    </div>
+  </section>
+
+  <!-- Step 2: choose the rules for your account. -->
+  <section class="panel" aria-labelledby="rules-heading">
+    <h2 id="rules-heading">Build rules</h2>
+    <p class="muted note">Checked rules cap levels in the max preset, the cheapest routes and the world limits. Unchecked rules are ignored.</p>
+    <div class="rules" id="rules"></div>
+    <div class="controls">
+      <select id="new-rule-skill" aria-label="Skill for new level cap"></select>
+      <button type="button" id="add-rule">Add level cap</button>
+    </div>
+    <ul class="rule-checks" id="rule-checks"></ul>
+    <p class="muted note" id="max-total-note"></p>
+  </section>
+
+  <!-- Step 3: see how far each total level world is, and pick a route. -->
+  <section class="panel" aria-labelledby="worlds-heading">
+    <h2 id="worlds-heading">Total level worlds</h2>
+    <div class="legend">
+      <span><i class="swatch current"></i>Current</span>
+      <span><i class="swatch target"></i>Target</span>
+    </div>
+    <div class="track" id="track"></div>
+    <div class="worlds" id="worlds"></div>
+    <p class="note" id="route-message" role="status"></p>
+  </section>
+
+  <!-- Step 4: fine-tune each skill's target level. -->
+  <section class="panel" aria-labelledby="skills-heading">
+    <h2 id="skills-heading">Skills</h2>
+    <div class="controls">
+      <button type="button" id="reset-targets">Reset targets to current</button>
+      <button type="button" id="max-targets">Max under rules</button>
+      <button type="button" id="lock-combat">Lock combat skills</button>
+      <button type="button" id="unlock-all">Unlock all</button>
+    </div>
+    <p class="muted small skills-help">Locked skills keep their target exactly as you set it. The cheapest route buttons only change unlocked skills, starting from their current levels. Routes pick the fewest total XP, not the fastest hours.</p>
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th>Skill</th>
+            <th>Current</th>
+            <th>Target</th>
+            <th>Levels</th>
+            <th>XP needed</th>
+            <th>Lock</th>
+            <th>Cap</th>
+          </tr>
+        </thead>
+        <!-- One row per skill, created by the script. -->
+        <tbody id="skill-rows"></tbody>
+        <tfoot>
+          <tr>
+            <td class="skill-name">Total</td>
+            <td id="footer-current"></td>
+            <td id="footer-target"></td>
+            <td id="footer-levels"></td>
+            <td id="footer-xp"></td>
+            <td></td>
+            <td></td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+  </section>
+
+</main>
+
+
+<!-- The script goes last, so every element above already exists when it runs. -->
+<script src="script.js"></script>
+</body>
+</html>
