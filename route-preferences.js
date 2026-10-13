@@ -37,6 +37,9 @@
 // How much each rating point discounts a skill's cost: 0.5 means half price.
 const COST_FACTOR_PER_RATING_POINT = 0.5;
 
+// The highest rating a preference can give a skill. Ratings run from 0 to this number.
+const MAX_RATING = 3;
+
 // The groups the preferences belong to. Only one preference in a group can be ticked,
 // but one from each group can be ticked together.
 const PREFERENCE_GROUPS = [

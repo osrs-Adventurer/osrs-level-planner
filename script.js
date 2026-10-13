@@ -17,8 +17,11 @@
    The basic loop:  the user does something  ->  the state changes  ->
    the state is saved  ->  the whole page is redrawn from the state.
 
-   The editable route preference ratings are not in this file. They are in
-   route-preferences.js, which is loaded first.
+   The route preferences are split between two files. route-preferences.js, which is
+   loaded first, holds the data you can edit: the preferences, their groups and their
+   ratings. This file holds the logic that uses that data: finding the ticked
+   preferences, saving and loading them, drawing the check boxes, and working out how
+   much they change a route.
    ============================================================================ */
 
 
@@ -458,9 +461,6 @@ function ratingAtLevel(rating, level) {
   }
   return result;
 }
-
-// The highest rating a route preference can give a skill.
-const MAX_RATING = 3;
 
 // The route preferences that are ticked: none, one, or one from each group.
 function chosenPreferences() {
