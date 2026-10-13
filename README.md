@@ -35,7 +35,7 @@ The tool does not fetch the hiscores for you. You copy and paste them instead.
 
 Open `index.html` in any modern browser. That is all. Keep `index.html`, `style.css`, `route-preferences.js` and `script.js` in the same folder, because the page loads the other three by name.
 
-To host it for others, upload the folder to any static host, for example [Netlify Drop](https://app.netlify.com/drop) (drag the folder onto the page) or GitHub Pages (push the folder to a repository and turn on Pages in its settings).
+Test application link: https://osrs-adventurer.github.io/osrs-level-planner/
 
 ## Running the tests
 
