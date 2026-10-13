@@ -1,0 +1,7 @@
+skill,from_level,rating,reason
+agility,1,0,"Listed on the page, but the maintainer decided its exp rates are too slow to count as AFK"
+slayer,1,2,"Not on the page, so the rule would give 0. Kept from the first draft of the ratings"
+crafting,1,1,"Nobody trains Crafting with pottery, because making the unfired pots by hand is tedious (the rule counts firing clay at 1:58)"
+cooking,1,3,"Cooking is AFK from level 1 to 99: put food in the inventory and wait for it to cook, and it is commonly known as an AFK skill (the rule only gives 3 from level 21, because the page lists cooking fish at 1:07)"
+sailing,35,0,"Sailing counts as AFK from level 40, not 35, because crewmate salvaging stays AFK all the way to 99 (the rule would give 2 from level 35 because of the barracuda wrecks)"
+sailing,40,3,Crewmate salvaging is AFK from level 40 to 99. This row ends the 0 band above

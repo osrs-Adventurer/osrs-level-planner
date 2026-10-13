@@ -10,9 +10,10 @@
 
 <body>
 <!--
-  This file is the page structure. Two other files finish the job:
-    style.css   the look of the page (colours, spacing, fonts)
-    script.js   the behaviour (loading stats, doing the sums, drawing results)
+  This file is the page structure. Three other files finish the job:
+    style.css              the look of the page (colours, spacing, fonts)
+    route-preferences.js   the ratings behind the "route preference" check boxes
+    script.js              the behaviour (loading stats, doing the sums, drawing results)
   Boxes below that have an id but no content, such as <div id="rules">,
   are filled in by script.js.
 -->
@@ -76,6 +77,10 @@
     </div>
     <ul class="rule-checks" id="rule-checks"></ul>
     <p class="muted note" id="max-total-note"></p>
+
+    <h3 class="subheading">Route preference</h3>
+    <p class="muted note">Optional. Tilts the cheapest route toward skills that suit how you play. It never changes caps or totals, and it never excludes a skill: one it does not favour can still be trained, especially a very low one, because low levels are cheap. To stop a skill being trained, lock it. Pick at most one from each group, and combine one from each if you like: a skill is only favoured when both ticked preferences favour it, for example AFK skills that need no supplies. Ticking another in the same group switches to it.</p>
+    <div class="rules" id="route-preferences"></div>
   </section>
 
   <!-- Step 3: see how far each total level world is, and pick a route. -->
@@ -99,7 +104,7 @@
       <button type="button" id="lock-combat">Lock combat skills</button>
       <button type="button" id="unlock-all">Unlock all</button>
     </div>
-    <p class="muted small skills-help">Locked skills keep their target exactly as you set it. The cheapest route buttons only change unlocked skills, starting from their current levels. Routes pick the fewest total XP, not the fastest hours.</p>
+    <p class="muted small skills-help">Locked skills keep their target exactly as you set it. The cheapest route buttons only change unlocked skills, starting from their current levels. Routes pick the fewest total XP, not the fastest hours. With a route preference ticked they favour that kind of skill instead, so the total XP needed goes up.</p>
     <div class="table-scroll">
       <table>
         <thead>
@@ -133,7 +138,9 @@
 </main>
 
 
-<!-- The script goes last, so every element above already exists when it runs. -->
+<!-- The scripts go last, so every element above already exists when they run.
+     route-preferences.js must come first, because script.js reads the ratings it defines. -->
+<script src="route-preferences.js"></script>
 <script src="script.js"></script>
 </body>
 </html>

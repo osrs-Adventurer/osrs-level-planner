@@ -16,6 +16,9 @@
 
    The basic loop:  the user does something  ->  the state changes  ->
    the state is saved  ->  the whole page is redrawn from the state.
+
+   The editable route preference ratings are not in this file. They are in
+   route-preferences.js, which is loaded first.
    ============================================================================ */
 
 
@@ -76,7 +79,21 @@ const COMBAT_SKILLS = ["attack", "defence", "strength", "hitpoints", "ranged", "
 
 // These level caps always appear in the build rules, in this order, and
 // cannot be removed.
-const DEFAULT_RULE_SKILLS = ["attack", "strength", "defence", "hitpoints", "ranged", "magic", "prayer"];
+const DEFAULT_RULE_SKILLS = [
+  "attack", "strength", "defence", "hitpoints", "ranged", "magic", "prayer",
+];
+
+// Finds a route preference by its id. Returns null if there is no such preference.
+// The preferences themselves (ROUTE_PREFERENCES) are defined in route-preferences.js,
+// which index.html loads before this file.
+function findRoutePreference(id) {
+  for (const preference of ROUTE_PREFERENCES) {
+    if (preference.id === id) {
+      return preference;
+    }
+  }
+  return null;
+}
 
 // Builds the experience table from the formula on the OSRS Wiki ("Experience").
 // After it runs, XP_FOR_LEVEL[50] is the total XP needed to reach level 50.
@@ -132,11 +149,12 @@ function clampRuleMax(value) {
   {
     current:   { attack: { level: 60, xp: 273742 }, ... },  // from the hiscores, or typed in
     target:    { attack: 75, ... },                          // the levels the user is aiming for
-    locked:    { attack: true, ... },                        // locked skills are left alone by routes
+    locked:    { attack: true, ... },                        // locked skills are kept as set
     username:  "Some Name",
     hiscoreMode: "hiscore_oldschool",
     rules:     [ { skill: "attack", max: 75, enabled: true, removable: false }, ... ],
-    untrimmed: { skill: "slayer", enabled: false }
+    untrimmed: { skill: "slayer", enabled: false },
+    routePreferences: { activity: "afk", resources: null }   // one choice per group, or null
   }
 */
 
@@ -166,6 +184,7 @@ function defaultState() {
     hiscoreMode: "hiscore_oldschool",
     rules: [],
     untrimmed: { skill: "slayer", enabled: false },
+    routePreferences: {},
   };
 
   for (const skill of SKILLS) {
@@ -175,6 +194,9 @@ function defaultState() {
   }
   for (const skillKey of DEFAULT_RULE_SKILLS) {
     state.rules.push(defaultRule(skillKey));
+  }
+  for (const group of PREFERENCE_GROUPS) {
+    state.routePreferences[group.id] = null;
   }
   return state;
 }
@@ -217,20 +239,14 @@ function mergeWithDefaultRules(savedRules) {
 function readSavedData() {
   try {
     return JSON.parse(localStorage.getItem(STORAGE_KEY));
-  } catch (error) {
+  } catch {
     return null;
   }
 }
 
-// Builds the state from saved data, falling back to the defaults for
-// anything that is missing or does not make sense.
-function loadState() {
-  const state = defaultState();
-  const saved = readSavedData();
-  if (!saved) {
-    return state;
-  }
-
+// Loads each skill's current level and XP, target and lock from the saved data.
+// ("state" in the functions below is the new object being built, not the global one.)
+function loadSkills(state, saved) {
   for (const skill of SKILLS) {
     const key = skill.key;
 
@@ -252,35 +268,74 @@ function loadState() {
 
     state.locked[key] = Boolean(saved.locked && saved.locked[key]);
   }
+}
 
-  if (typeof saved.username === "string") {
-    state.username = saved.username;
+// Loads the build rules: the built-in level caps, and any the user added.
+function loadRules(state, saved) {
+  if (!Array.isArray(saved.rules)) {
+    return;
   }
-  if (typeof saved.hiscoreMode === "string") {
-    state.hiscoreMode = saved.hiscoreMode;
-  }
-
-  if (Array.isArray(saved.rules)) {
-    const savedRules = [];
-    for (const rule of saved.rules) {
-      if (rule && isSkillKey(rule.skill)) {
-        savedRules.push({
-          skill: rule.skill,
-          max: clampRuleMax(Number(rule.max)),
-          enabled: Boolean(rule.enabled),
-        });
-      }
+  const savedRules = [];
+  for (const rule of saved.rules) {
+    if (rule && isSkillKey(rule.skill)) {
+      savedRules.push({
+        skill: rule.skill,
+        max: clampRuleMax(Number(rule.max)),
+        enabled: Boolean(rule.enabled),
+      });
     }
-    state.rules = mergeWithDefaultRules(savedRules);
   }
+  state.rules = mergeWithDefaultRules(savedRules);
+}
 
+// Loads the "untrimmed cape" rule.
+function loadUntrimmed(state, saved) {
   if (saved.untrimmed && isSkillKey(saved.untrimmed.skill)) {
     state.untrimmed = {
       skill: saved.untrimmed.skill,
       enabled: Boolean(saved.untrimmed.enabled),
     };
   }
+}
 
+// Loads the ticked route preferences. A saved preference only counts if this version
+// still knows about it, and if it is saved under the group it belongs to.
+function loadRoutePreferences(state, saved) {
+  if (saved.routePreferences && typeof saved.routePreferences === "object") {
+    for (const group of PREFERENCE_GROUPS) {
+      const preference = findRoutePreference(saved.routePreferences[group.id]);
+      if (preference && preference.group === group.id) {
+        state.routePreferences[group.id] = preference.id;
+      }
+    }
+  }
+
+  // Earlier versions saved a single preference as text. Put it in the group it belongs to.
+  const earlierPreference = findRoutePreference(saved.routePreference);
+  if (earlierPreference) {
+    state.routePreferences[earlierPreference.group] = earlierPreference.id;
+  }
+}
+
+// Builds the state from saved data, falling back to the defaults for
+// anything that is missing or does not make sense.
+function loadState() {
+  const state = defaultState();
+  const saved = readSavedData();
+  if (!saved) {
+    return state;
+  }
+
+  loadSkills(state, saved);
+  if (typeof saved.username === "string") {
+    state.username = saved.username;
+  }
+  if (typeof saved.hiscoreMode === "string") {
+    state.hiscoreMode = saved.hiscoreMode;
+  }
+  loadRules(state, saved);
+  loadUntrimmed(state, saved);
+  loadRoutePreferences(state, saved);
   return state;
 }
 
@@ -289,7 +344,7 @@ function loadState() {
 function saveState() {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-  } catch (error) {
+  } catch {
     // Nothing to do: the tool simply will not remember anything next time.
   }
 }
@@ -379,10 +434,82 @@ function maxTotalUnderRules() {
   return totalLevel(caps);
 }
 
+// The rating a skill has at a given level. A rating is either a plain number
+// (the same at every level) or bands such as { 1: 0, 77: 2 }, which means
+// "0 from level 1, then 2 from level 77". Anything missing counts as 0.
+function ratingAtLevel(rating, level) {
+  if (rating === undefined) {
+    return 0;
+  }
+  if (typeof rating === "number") {
+    return rating;
+  }
+
+  let result = 0;
+  let latestStart = 0;
+  for (const startText of Object.keys(rating)) {
+    // Object keys are always text, so "77" has to be turned back into the number 77.
+    const start = Number(startText);
+    // Use the band that starts closest to the level without going past it.
+    if (start <= level && start >= latestStart) {
+      latestStart = start;
+      result = rating[startText];
+    }
+  }
+  return result;
+}
+
+// The highest rating a route preference can give a skill.
+const MAX_RATING = 3;
+
+// The route preferences that are ticked: none, one, or one from each group.
+function chosenPreferences() {
+  const chosen = [];
+  for (const group of PREFERENCE_GROUPS) {
+    const preference = findRoutePreference(state.routePreferences[group.id]);
+    if (preference) {
+      chosen.push(preference);
+    }
+  }
+  return chosen;
+}
+
+// Describes the ticked preferences for the header and the route message, for example
+// "favouring AFK skills and skills you can buy". Empty if none are ticked.
+function chosenPreferenceSummary() {
+  const summaries = [];
+  for (const preference of chosenPreferences()) {
+    summaries.push(preference.summary);
+  }
+  return summaries.length > 0 ? "favouring " + summaries.join(" and ") : "";
+}
+
+// How much a skill's XP cost counts for when a route decides what to train
+// next. 1 means no change. With route preferences ticked, skills that the
+// preferences rate highly get a smaller number, so they look cheaper and are
+// chosen sooner. When two preferences are ticked, a skill counts for as much as the
+// weaker of its two ratings, so it is only favoured if both preferences favour it
+// ("AFK skills that need no supplies" means skills that are both). This also means
+// ticking two never tilts harder than ticking one.
+function routeCostFactor(skillKey, level) {
+  const chosen = chosenPreferences();
+  if (chosen.length === 0) {
+    return 1;
+  }
+  let weakestRating = MAX_RATING;
+  for (const preference of chosen) {
+    const rating = ratingAtLevel(preference.ratings[skillKey], level);
+    weakestRating = Math.min(weakestRating, rating);
+  }
+  return Math.pow(COST_FACTOR_PER_RATING_POINT, weakestRating);
+}
+
 // Works out targets that reach a goal total level using as little XP as
 // possible. It starts from your current levels (or your own targets for locked
 // skills), then keeps adding one level to whichever skill has the cheapest next
 // level, until the goal is reached or every skill is at its cap.
+// With a route preference ticked, each skill's cost is adjusted first (see
+// routeCostFactor), so the route favours those skills and needs more XP overall.
 // Returns the levels it chose and the total it reached.
 function cheapestRoute(goalTotal) {
   const levels = {};
@@ -408,7 +535,9 @@ function cheapestRoute(goalTotal) {
       // next one, so use its real XP. Otherwise use the exact XP of its level.
       const stillAtCurrent = levels[key] === state.current[key].level;
       const xpNow = stillAtCurrent ? state.current[key].xp : XP_FOR_LEVEL[levels[key]];
-      const cost = XP_FOR_LEVEL[levels[key] + 1] - xpNow;
+      const xpCost = XP_FOR_LEVEL[levels[key] + 1] - xpNow;
+      // The rating that applies is the one for the level the skill is at now.
+      const cost = xpCost * routeCostFactor(key, levels[key]);
 
       if (cost < cheapestCost) {
         cheapestCost = cost;
@@ -443,7 +572,7 @@ function parseJsonHiscores(text) {
   let data;
   try {
     data = JSON.parse(text);
-  } catch (error) {
+  } catch {
     return null;   // not JSON at all
   }
   if (!data || !Array.isArray(data.skills)) {
@@ -452,7 +581,25 @@ function parseJsonHiscores(text) {
 
   const stats = {};
   for (const entry of data.skills) {
-    stats[String(entry.name).toLowerCase()] = { level: entry.level, xp: entry.xp };
+    if (entry) {
+      stats[String(entry.name).toLowerCase()] = { level: entry.level, xp: entry.xp };
+    }
+  }
+
+  // The hiscores may spell a skill differently from this tool (for example "Runecrafting"
+  // instead of "Runecraft"). For any skill not found by name, use its position instead.
+  // Like the plain text version, the list starts with Overall, then Attack, and so on.
+  // This is only safe when the list has exactly Overall plus one entry per skill. If an
+  // entry is missing, everything after it shifts up and positions would give wrong data.
+  const first = data.skills[0];
+  const hasExpectedLength = data.skills.length === SKILLS.length + 1;
+  if (hasExpectedLength && first && String(first.name).toLowerCase() === "overall") {
+    for (let index = 0; index < SKILLS.length; index++) {
+      const entry = data.skills[index + 1];
+      if (entry && !stats[SKILLS[index].key]) {
+        stats[SKILLS[index].key] = { level: entry.level, xp: entry.xp };
+      }
+    }
   }
   return stats;
 }
@@ -491,8 +638,9 @@ function parseHiscores(text) {
 }
 
 // Copies imported stats into the state. Returns how many skills were found.
-// Skills you have not been ranked in come back as -1, so for those we use the
-// XP if there is any, or else the skill's minimum level.
+// A skill you have not been ranked in has a rank of -1. In the JSON hiscores it still
+// has a real level (1) and 0 XP, but some versions send -1 for the level or the XP as
+// well, so for a level of -1 we use the XP if there is any, or else the minimum level.
 function applyImportedStats(stats) {
   let importedCount = 0;
 
@@ -520,10 +668,22 @@ function applyImportedStats(stats) {
   return importedCount;
 }
 
+// The names of the skills that the imported stats did not include.
+function namesOfSkillsNotFound(stats) {
+  const names = [];
+  for (const skill of SKILLS) {
+    if (!stats[skill.key]) {
+      names.push(skill.name);
+    }
+  }
+  return names;
+}
+
 // The web address of the player's hiscores data, which the user opens in a new tab.
 function hiscoreUrl() {
   const player = encodeURIComponent(state.username);
-  return "https://secure.runescape.com/m=" + state.hiscoreMode + "/index_lite.json?player=" + player;
+  return "https://secure.runescape.com/m=" + state.hiscoreMode +
+    "/index_lite.json?player=" + player;
 }
 
 
@@ -567,6 +727,7 @@ function renderAll() {
   renderTrack();
   renderWorlds();
   renderRuleChecks();
+  renderRoutePreferences();
   renderSkillRows();
 }
 
@@ -580,6 +741,10 @@ function renderHeader() {
   }
   if (state.untrimmed.enabled) {
     activeRules.push(`untrimmed ${skillName(state.untrimmed.skill)} cape`);
+  }
+  const preferenceSummary = chosenPreferenceSummary();
+  if (preferenceSummary !== "") {
+    activeRules.push(preferenceSummary);
   }
   byId("rule-summary").textContent =
     activeRules.length > 0 ? activeRules.join(", ") + "." : "No build rules checked.";
@@ -615,8 +780,10 @@ function renderTrack() {
     <div class="track-groove"></div>
     <div class="track-fill" style="width:${trackPercent(target)}%"></div>
     ${gates}
-    <div class="track-marker current" style="left:${trackPercent(current)}%" title="Current ${current}"></div>
-    <div class="track-marker target" style="left:${trackPercent(target)}%" title="Target ${target}"></div>`;
+    <div class="track-marker current" style="left:${trackPercent(current)}%"
+         title="Current ${current}"></div>
+    <div class="track-marker target" style="left:${trackPercent(target)}%"
+         title="Target ${target}"></div>`;
 }
 
 // Creates one card per world. This runs once, when the page loads. Later,
@@ -678,7 +845,8 @@ function ruleRowHtml(rule, index) {
   const disabledClass = rule.enabled ? "" : " disabled";
   const checked = rule.enabled ? " checked" : "";
   const removeButton = rule.removable
-    ? `<button type="button" class="small-button" data-rule="${index}" data-field="remove">Remove</button>`
+    ? `<button type="button" class="small-button"
+               data-rule="${index}" data-field="remove">Remove</button>`
     : "";
 
   return `
@@ -687,7 +855,7 @@ function ruleRowHtml(rule, index) {
         <input type="checkbox" data-rule="${index}" data-field="enabled"${checked}>
         ${name} max
       </label>
-      <input type="number" min="1" max="99" value="${rule.max}"
+      <input type="number" min="1" max="${MAX_LEVEL}" value="${rule.max}"
              data-rule="${index}" data-field="max" aria-label="${name} maximum level">
       ${removeButton}
     </div>`;
@@ -724,6 +892,40 @@ function renderRules() {
   byId("rules").innerHTML = html;
 }
 
+// Creates the route preference check boxes, one block per group. This runs once, when
+// the page loads. renderRoutePreferences then ticks and unticks them in place.
+function buildRoutePreferences() {
+  let html = "";
+  for (const group of PREFERENCE_GROUPS) {
+    html += `<div class="preference-group-title">${group.title}</div>`;
+    for (const preference of ROUTE_PREFERENCES) {
+      if (preference.group !== group.id) {
+        continue;
+      }
+      html += `
+        <div class="rule">
+          <label class="checkbox-label">
+            <input type="checkbox" data-preference="${preference.id}">
+            ${preference.label}
+          </label>
+          <span class="muted small">${preference.note}</span>
+        </div>`;
+    }
+  }
+  byId("route-preferences").innerHTML = html;
+}
+
+// Ticks the check box of each group's chosen preference and unticks the rest, so at
+// most one per group is ever ticked. Unticked ones fade, like the other rules.
+function renderRoutePreferences() {
+  for (const checkbox of byId("route-preferences").querySelectorAll("input[data-preference]")) {
+    const preference = findRoutePreference(checkbox.dataset.preference);
+    const isChosen = state.routePreferences[preference.group] === preference.id;
+    checkbox.checked = isChosen;
+    checkbox.closest(".rule").classList.toggle("disabled", !isChosen);
+  }
+}
+
 // The names of skills (other than the cape skill) that are at level 99.
 function namesOfOtherMaxedSkills(levels, capeSkillKey) {
   const names = [];
@@ -740,11 +942,9 @@ function checkLineHtml(cssClass, symbol, text) {
   return `<li class="${cssClass}">${symbol} ${text}</li>`;
 }
 
-// The pass / fail messages under the build rules, plus the highest possible total.
-function renderRuleChecks() {
+// The pass / fail lines for the checked level caps: is each target within its cap?
+function capCheckLines() {
   const lines = [];
-
-  // Is each checked level cap respected by the target?
   for (const rule of state.rules) {
     if (!rule.enabled) {
       continue;
@@ -757,30 +957,47 @@ function renderRuleChecks() {
       lines.push(checkLineHtml("bad", "✗", text));
     }
   }
+  return lines;
+}
 
-  // The untrimmed cape rule: no other skill may reach 99 before the cape skill.
-  if (state.untrimmed.enabled) {
-    const capeKey = state.untrimmed.skill;
-    const capeName = skillName(capeKey);
-    const maxedAtTarget = namesOfOtherMaxedSkills(targetLevels(), capeKey);
-    const maxedNow = namesOfOtherMaxedSkills(currentLevels(), capeKey);
-
-    if (maxedAtTarget.length === 0) {
-      lines.push(checkLineHtml("good", "✓", `No other 99 before ${capeName}`));
-    } else if (state.target[capeKey] < MAX_LEVEL) {
-      lines.push(checkLineHtml("bad", "✗", `99 ${maxedAtTarget.join(", ")} before 99 ${capeName} would trim the cape`));
-    } else {
-      lines.push(checkLineHtml("warning", "!", `99 ${capeName} and 99 ${maxedAtTarget.join(", ")}: only untrimmed if ${capeName} was reached first`));
-    }
-
-    if (maxedNow.length > 0 && state.current[capeKey].level < MAX_LEVEL) {
-      lines.push(checkLineHtml("bad", "✗", `You already have 99 ${maxedNow.join(", ")}`));
-    }
+// The pass / fail lines for the untrimmed cape rule: no other skill may reach 99
+// before the cape skill does.
+function untrimmedCheckLines() {
+  const lines = [];
+  if (!state.untrimmed.enabled) {
+    return lines;
   }
 
+  const capeKey = state.untrimmed.skill;
+  const capeName = skillName(capeKey);
+  const maxedAtTarget = namesOfOtherMaxedSkills(targetLevels(), capeKey);
+  const maxedNow = namesOfOtherMaxedSkills(currentLevels(), capeKey);
+  const maxedNames = maxedAtTarget.join(", ");
+
+  if (maxedAtTarget.length === 0) {
+    lines.push(checkLineHtml("good", "✓", `No other 99 before ${capeName}`));
+  } else if (state.target[capeKey] < MAX_LEVEL) {
+    const text = `99 ${maxedNames} before 99 ${capeName} would trim the cape`;
+    lines.push(checkLineHtml("bad", "✗", text));
+  } else {
+    const text = `99 ${capeName} and 99 ${maxedNames}: ` +
+      `only untrimmed if ${capeName} was reached first`;
+    lines.push(checkLineHtml("warning", "!", text));
+  }
+
+  if (maxedNow.length > 0 && state.current[capeKey].level < MAX_LEVEL) {
+    lines.push(checkLineHtml("bad", "✗", `You already have 99 ${maxedNow.join(", ")}`));
+  }
+  return lines;
+}
+
+// The pass / fail messages under the build rules, plus the highest possible total.
+function renderRuleChecks() {
+  const lines = capCheckLines().concat(untrimmedCheckLines());
   byId("rule-checks").innerHTML =
     lines.length > 0 ? lines.join("") : `<li class="muted">No rules checked.</li>`;
-  byId("max-total-note").textContent = `Highest total possible under these rules: ${maxTotalUnderRules()}.`;
+  byId("max-total-note").textContent =
+    `Highest total possible under these rules: ${maxTotalUnderRules()}.`;
 }
 
 // Creates the table rows, one per skill. This runs once, when the page loads.
@@ -791,11 +1008,15 @@ function buildSkillRows() {
     html += `
       <tr data-skill="${skill.key}">
         <td class="skill-name">${skill.name}</td>
-        <td><input type="number" class="current-input" min="${skill.minLevel}" max="99" aria-label="${skill.name} current level"></td>
+        <td>
+          <input type="number" class="current-input" min="${skill.minLevel}" max="${MAX_LEVEL}"
+                 aria-label="${skill.name} current level">
+        </td>
         <td>
           <span class="stepper">
             <button type="button" data-step="-1" aria-label="Lower ${skill.name} target">−</button>
-            <input type="number" class="target-input" min="${skill.minLevel}" max="99" aria-label="${skill.name} target level">
+            <input type="number" class="target-input" min="${skill.minLevel}" max="${MAX_LEVEL}"
+                   aria-label="${skill.name} target level">
             <button type="button" data-step="1" aria-label="Raise ${skill.name} target">+</button>
           </span>
         </td>
@@ -869,10 +1090,16 @@ function updateHiscoreLink() {
   link.hidden = state.username === "";
 }
 
-// Shows a message in one of the message areas. The tone is "good", "bad" or "".
+// Shows a message in one of the message areas. The tone is "good", "warning", "bad" or "".
 function setMessage(id, text, tone) {
   byId(id).textContent = text;
   byId(id).className = "note " + tone;
+}
+
+// Empties the two status messages (what the last route or import did).
+function clearMessages() {
+  setMessage("route-message", "", "");
+  setMessage("import-message", "", "");
 }
 
 
@@ -883,10 +1110,14 @@ function setMessage(id, text, tone) {
    Section 7 connects them to the page.
    ============================================================================ */
 
-// Saves the state, then redraws the page from it.
+// Saves the state, then redraws the page from it. It also clears the status messages,
+// because after a change they may no longer be true ("Targets set for the 1500 world"
+// is wrong once you edit a target). A handler that wants to show a message sets it
+// after calling this.
 function saveAndRedraw() {
   saveState();
   renderAll();
+  clearMessages();
 }
 
 /* ----- The skills table ----- */
@@ -951,7 +1182,8 @@ function handleResetTargets() {
 function handleMaxTargets() {
   for (const skill of SKILLS) {
     if (!state.locked[skill.key]) {
-      state.target[skill.key] = Math.max(state.current[skill.key].level, capIncludingUntrimmed(skill.key));
+      const reachedLevel = state.current[skill.key].level;
+      state.target[skill.key] = Math.max(reachedLevel, capIncludingUntrimmed(skill.key));
     }
   }
   saveAndRedraw();
@@ -987,9 +1219,13 @@ function handleWorldClick(event) {
   saveAndRedraw();
 
   if (route.total < goal) {
-    setMessage("route-message", `Can't reach ${goal} with these locks and rules. The highest is ${route.total}.`, "bad");
+    const message = `Can't reach ${goal} with these locks and rules. ` +
+      `The highest is ${route.total}.`;
+    setMessage("route-message", message, "bad");
   } else {
-    setMessage("route-message", `Targets set for the ${goal} world.`, "good");
+    const summary = chosenPreferenceSummary();
+    const preferenceNote = summary === "" ? "" : `, ${summary}`;
+    setMessage("route-message", `Targets set for the ${goal} world${preferenceNote}.`, "good");
   }
 }
 
@@ -1045,6 +1281,19 @@ function handleAddRule() {
   saveAndRedraw();
 }
 
+/* ----- Route preferences ----- */
+
+// Ticking a preference makes it its group's chosen one, which unticks the other in that
+// group (renderAll takes care of that). Unticking it leaves that group with no choice.
+function handleRoutePreferenceChange(event) {
+  const preference = findRoutePreference(event.target.dataset.preference);
+  if (!preference) {
+    return;
+  }
+  state.routePreferences[preference.group] = event.target.checked ? preference.id : null;
+  saveAndRedraw();
+}
+
 /* ----- Loading stats ----- */
 
 function handleUsernameInput(event) {
@@ -1066,13 +1315,24 @@ function handleImportClick() {
     return;
   }
 
-  const importedCount = applyImportedStats(parseHiscores(text));
+  const stats = parseHiscores(text);
+  const importedCount = applyImportedStats(stats);
   if (importedCount === 0) {
-    setMessage("import-message", "Couldn't read any skills. Paste the full page from the hiscores link.", "bad");
+    const message = "Couldn't read any skills. Paste the full page from the hiscores link.";
+    setMessage("import-message", message, "bad");
     return;
   }
   saveAndRedraw();
-  setMessage("import-message", `Imported ${importedCount} skills.`, "good");
+
+  // Say so if anything was missing, so a skill is never left out without you knowing.
+  const notFound = namesOfSkillsNotFound(stats);
+  if (notFound.length === 0) {
+    setMessage("import-message", `Imported ${importedCount} skills.`, "good");
+  } else {
+    const message = `Imported ${importedCount} skills. ` +
+      `Not found in the pasted data: ${notFound.join(", ")}.`;
+    setMessage("import-message", message, "warning");
+  }
 }
 
 
@@ -1097,13 +1357,14 @@ function connectEventHandlers() {
   byId("rules").addEventListener("change", handleRuleChange);
   byId("rules").addEventListener("click", handleRuleClick);
   byId("add-rule").addEventListener("click", handleAddRule);
+  byId("route-preferences").addEventListener("change", handleRoutePreferenceChange);
 
   byId("username").addEventListener("input", handleUsernameInput);
   byId("hiscore-mode").addEventListener("change", handleHiscoreModeChange);
   byId("import-stats").addEventListener("click", handleImportClick);
 }
 
-function start() {
+function startUp() {
   // Fill in the parts of the page that depend on saved data.
   byId("new-rule-skill").innerHTML = skillOptionsHtml("strength");
   byId("username").value = state.username;
@@ -1113,10 +1374,11 @@ function start() {
   // Build the pieces that are created once, then draw everything.
   buildWorldCards();
   buildSkillRows();
+  buildRoutePreferences();
   renderRules();
   renderAll();
 
   connectEventHandlers();
 }
 
-start();
+startUp();

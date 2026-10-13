@@ -1,0 +1,106 @@
+section,applies_to,method,level,afk_time,exp_per_hour,note
+skilling,woodcutting,Infected root,80,30:00,9100,with log basket
+skilling,woodcutting,Rosewood tree,92,04:35,85000,
+skilling,woodcutting,Redwood tree,90,04:24,85000,
+skilling,woodcutting,Ironwood tree,80,04:00,100000,
+skilling,woodcutting,Magic tree,75,03:54,27500,
+skilling,woodcutting,Camphor tree,66,02:00,70000,
+skilling,woodcutting,Yew tree,60,01:54,47000,
+skilling,woodcutting,Engorged bloodwood tree,77,01:50,70000,loop alternates between 1:50 and 0:45
+skilling,woodcutting,Mahogany tree,50,01:00,46500,
+skilling,woodcutting,Maple tree,45,01:00,52800,
+skilling,mining,Guardian fragments,1,10:00,7500,needs 27 Runecraft; capped at 1250 exp per round
+skilling,mining,Shooting stars,10,07:00,31160,
+skilling,mining,Duke mining,72,05:00,10600,
+skilling,mining,Infernal shale,78,04:45,9860,assumes the shale is crushed
+skilling,mining,Sunstone monolith,50,02:30,8000,needs 62 Sailing
+skilling,mining,Amethyst crystals,92,01:57,24000,with expert mining gloves
+skilling,mining,Daeyalt essence,60,01:00,8851,
+skilling,mining,Barronite rocks,14,00:20,20000,with Charm of Mining
+skilling,cooking,Churning,21,07:17,14720,page range 21-48
+skilling,cooking,Cooking fish/meats,1,01:07,310000,page range 1-92
+skilling,cooking,Forester's rations,35,00:49,96579,
+skilling,thieving,Auto-pickpocket wealthy citizen,50,01:32,57600,
+skilling,thieving,Burgling houses,50,00:55,115444,
+skilling,thieving,One-click summer garden,65,00:36,150000,
+skilling,farming,Extra XP from One-click summer garden,1,,3000,"extra XP, no AFK time of its own"
+skilling,smithing,Smithing one bar items,1,01:07,65000,page range 1-92
+skilling,smithing,Smithing cannonballs,35,01:02,30720,with double ammo mould
+skilling,fletching,Bolt tips,11,01:21,8400,page range 11-83
+skilling,fletching,Battlestaves,40,00:49,143000,
+skilling,fletching,Redwood shields,92,00:47,193000,
+skilling,firemaking,Forester's campfire,1,02:31,238569,page range 1-90
+skilling,fishing,The Stranglewood fishing,63,30:00,750,
+skilling,fishing,Karambwanji,5,20:00,5100,
+skilling,fishing,Anglerfish,82,18:20,18000,at sea
+skilling,fishing,Anglerfish,82,09:00,19680,at sea; second row on the page
+skilling,fishing,Anglerfish,82,02:37,,on land; the page gives no exp/h
+skilling,fishing,Shark at sea,76,14:22,22550,
+skilling,fishing,Shark at sea,76,07:19,24805,second row on the page
+skilling,fishing,Monkfish at sea,62,07:36,46740,
+skilling,fishing,Monkfish at sea,62,03:48,49200,second row on the page
+skilling,fishing,Dark crab,85,07:32,40040,
+skilling,fishing,Civitas illa Fortis fishing,1,07:00,2000,
+skilling,fishing,Cave eel,38,04:58,40000,
+skilling,fishing,Karambwan,65,04:13,40000,
+skilling,fishing,General fishing spot,1,01:57,50000,page range 1-81
+skilling,fishing,Barbarian fishing,48,01:57,57000,
+skilling,agility,Extra XP from Barbarian fishing,15,,5200,"extra XP, no AFK time of its own"
+skilling,strength,Extra XP from Barbarian fishing,15,,5200,"extra XP, no AFK time of its own"
+skilling,fishing,Sacred eel,87,01:00,27300,
+skilling,cooking,Extra XP from Sacred eel,72,,31460,"extra XP, no AFK time of its own"
+skilling,fishing,Infernal eel,80,01:00,36516,
+skilling,agility,POH agility,1,10:00,12000,needs 88 Construction
+skilling,agility,Pedals,30,05:19,6000,
+skilling,herblore,Making tar,11,00:47,170000,page range 11-55
+skilling,herblore,Auto-cleaning herbs,3,00:34,45000,page range 3-74
+skilling,herblore,Stackable secondary potions,77,00:31,330000,page range 77-94
+skilling,runecraft,Zeah blood runes,77,00:55,36000,56 clicks per AFK
+skilling,crafting,Extra XP from Zeah blood runes,38,,5755,"extra XP, no AFK time of its own"
+skilling,mining,Extra XP from Zeah blood runes,38,,4211,"extra XP, no AFK time of its own"
+skilling,runecraft,Zeah soul runes,90,00:55,44000,
+skilling,crafting,Extra XP from Zeah soul runes,38,,5666,"extra XP, no AFK time of its own"
+skilling,mining,Extra XP from Zeah soul runes,38,,4146,"extra XP, no AFK time of its own"
+skilling,runecraft,ZMI Runecrafting,1,00:25,77121,15 clicks per AFK
+skilling,magic,Auto-cast enchant jewelry,7,01:53,63180,page range 7-93
+skilling,magic,Casting plank make,86,01:30,86400,
+skilling,magic,Casting string jewellery,80,00:49,149400,
+skilling,crafting,Extra XP from Casting string jewellery,1,,7200,"extra XP, no AFK time of its own"
+skilling,crafting,Building the temple,20,02:00,22000,
+skilling,crafting,Firing clay,1,01:58,16000,
+skilling,crafting,Blowing glass,1,00:50,122500,page range 1-87
+skilling,crafting,Spinning,1,00:50,210000,page range 1-73
+skilling,strength,Pump,30,30:00,12000,Blast Furnace pump
+skilling,sailing,Crewmate only salvaging,40,30:00,30000,sorting salvage; page range 40-87
+skilling,sailing,Crewmate only salvaging,40,,15000,banking salvage; the page gives no AFK time
+skilling,sailing,Merchant shipwreck,87,04:00,85000,
+skilling,sailing,Fremennik shipwreck,80,03:38,80000,
+skilling,sailing,Mercenary shipwreck,73,03:15,70000,
+skilling,sailing,Pirate shipwreck,64,02:38,47000,
+skilling,sailing,Large shipwreck,53,02:31,30000,
+skilling,sailing,Barracuda shipwreck,35,02:21,18000,
+skilling,sailing,Fisherman's shipwreck,26,02:12,5800,
+skilling,sailing,Small shipwreck,15,01:00,3200,
+skilling,hunter,Stymphike,82,00:39,140000,
+skilling,hunter,Maniacal monkey,60,00:25,120000,
+skilling,prayer,Auto-offer Gilded altar,1,01:02,630000,page range 1-70
+skilling,construction,Repair kit (low level),1,01:02,261375,36 clicks per AFK; page range 1-66
+skilling,construction,Repair kit (low level),1,00:31,365925,second row on the page
+skilling,construction,Repair kit (high level),80,00:17,473550,page range 80-92
+combat,magic,Splashing,1,20:00,60600,
+combat,magic,Maniacal monkeys (Ice barrage AFK),94,10:00,200000,
+combat,all-combat,Gemstone Crab,1,10:00,100000,applies to every combat skill
+combat,all-combat,Sand Crab,1,10:00,100000,applies to every combat skill
+combat,all-combat,Ammonite Crab,1,10:00,100000,applies to every combat skill
+combat,melee,NMZ Melee,60,20:00,105000,
+combat,melee,Brutus afk,80,20:00,55500,
+combat,melee,Desert Bandits,75,17:00,130000,
+combat,melee,Vyrewatch Sentinel,70,17:00,54000,
+combat,melee,Sulphur Nagua,60,10:00,120000,
+combat,melee,Maniacal monkeys (Hallowfell AFK),80,10:00,150000,
+combat,ranged,NMZ Ranged,70,20:00,150000,
+combat,ranged,Maniacal monkeys (Chinning AFK),80,10:00,500000,
+recurring,farming,Herb run,9,86:00,17442,time is the recurrence time; page range 9-85
+recurring,sailing,Crystal extractor,73,01:08,13553,time is the recurrence time
+recurring,agility,Vampyrium Rockslide,78,07:30,4400,time is the recurrence time
+recurring,hunter,Bird house run,5,50:00,5760,time is the recurrence time; page range 5-90

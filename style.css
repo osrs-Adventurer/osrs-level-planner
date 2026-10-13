@@ -478,6 +478,20 @@ textarea {
   opacity: 0.55;
 }
 
+/* A small heading inside a panel, such as "Route preference". */
+.subheading {
+  margin: 18px 0 4px;
+  font-size: 1.05rem;
+}
+
+/* The title of one group of route preferences, such as "How you want to train". */
+.preference-group-title {
+  margin: 10px 0 4px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--muted);
+}
+
 /* The pass / fail messages under the rules. */
 .rule-checks {
   margin: 14px 0 0;
